@@ -1,0 +1,2 @@
+40b46748c0ed8c527f7d6bf71f3a1130be1a6856f3656ba1f8e606be6050ec8d  Logic11-BNNS-Patcher.command
+e23fd063d6bd9765d5ff3d2c6508881c3531cca946b56df8f1d6b5359e1ff52d  Logic11-BNNS-Patcher.zip
