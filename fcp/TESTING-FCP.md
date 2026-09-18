@@ -1,6 +1,6 @@
 # Testing the FCP port
 
-Start `Final Cut Pro Trial BNNS Patched.app` via right-click → Open.
+Start `Final Cut Pro 11 BNNS Patched.app` via right-click → Open.
 
 1. Open a DUPLICATE library (never your live `~/Movies/*.fcpbundle` first).
 2. Play back a normal timeline — confirms base app + signing fine.

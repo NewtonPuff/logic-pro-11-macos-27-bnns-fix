@@ -1,6 +1,6 @@
-# Final Cut Pro Trial 11.1 on macOS 27 — BNNS Compatibility Patch (FCP port)
+# Final Cut Pro 11.1 on macOS 27 — BNNS Compatibility Patch (FCP port)
 
-Unofficial compatibility patch for Final Cut Pro Trial 11.1 dying at launch on macOS 27 with:
+Unofficial compatibility patch for Final Cut Pro 11.1 dying at launch on macOS 27 with:
 
 ```text
 Termination Reason: Namespace DYLD, Code 4, Symbol missing
@@ -10,14 +10,15 @@ Expected in: .../Accelerate.framework
 ```
 
 Same macOS 27 BNNS Graph ABI transition that breaks Logic Pro 11.x. This port applies the same
-copy-only adapter strategy to FCP's nested `MAMachineLearning 11.1 (922)`.
+copy-only adapter strategy to FCP's nested `MAMachineLearning 11.1 (922)` (compatible with both
+standard and trial installations of Final Cut Pro 11.1).
 
 Upstream Logic fix this is ported from (attribution — see `ATTRIBUTION.md`):
 `https://github.com/NewtonPuff/logic-pro-11-macos-27-bnns-fix`
 
 ## Tested configuration
 
-- Final Cut Pro Trial 11.1 (440108), inner `MAMachineLearning 11.1 (922)`
+- Final Cut Pro 11.1 (440108), inner `MAMachineLearning 11.1 (922)`
   - SHA-256: `c0e0729bf54f2313eb168126a3631d2c804176cc5c41493c17182bbd7d7457c7`
 - macOS 27.0 (26A428), Apple Silicon ARM64, SIP enabled
 - Launch-tested: patched copy stays alive past dyld (stock dies in <1s). ML runtime testing is
@@ -26,7 +27,8 @@ Upstream Logic fix this is ported from (attribution — see `ATTRIBUTION.md`):
 ## What it does
 
 - Verifies the exact FCP 11.1 build by version + SHA-256 before touching anything.
-- Copies `/Applications/Final Cut Pro Trial.app` (5.9G) — the original is never modified.
+- Auto-detects `/Applications/Final Cut Pro.app` or `/Applications/Final Cut Pro Trial.app`.
+- Copies the app bundle — the original is never modified.
 - Neutralizes the obsolete direct `BNNSGraphGetSize` call + serializer branch (both slices).
 - Sets `N_WEAK_REF` on the legacy import (belt-and-braces).
 - Redirects both internal BNNS `dlopen` strings to a bundled compatibility adapter.
@@ -38,18 +40,18 @@ Upstream Logic fix this is ported from (attribution — see `ATTRIBUTION.md`):
 
 ## What it does not do
 
-No `/System` change, no Accelerate replacement, no SIP disable, no SSV change, no license/trial
+No `/System` change, no Accelerate replacement, no SIP disable, no SSV change, no license/account
 change, no overwrite of the original app.
 
 ## Install (new users)
 
-1. Keep stock `Final Cut Pro Trial 11.1` at `/Applications/Final Cut Pro Trial.app`.
+1. Keep stock Final Cut Pro 11.1 in `/Applications`.
 2. Back up your libraries (e.g. `~/Movies/*.fcpbundle` + `Final Cut Backups.localized`) to external.
-   The tester backup was only ~120M — do it anyway and test on a DUPLICATE library.
-3. Free disk: the duplicate is 5.9G, have 30G+ free (`df -h /System/Volumes/Data`).
+   Always test on a DUPLICATE library first.
+3. Free disk: ensure you have enough free space for the duplicated app (`df -h /System/Volumes/Data`).
 4. In this `fcp/` folder, double-click `FCP-BNNS-Patcher.command`
    (or `chmod +x FCP-BNNS-Patcher.command && ./FCP-BNNS-Patcher.command`).
-5. Output by default: `~/Desktop/Final Cut Pro Trial BNNS Patched.app`.
+5. Output by default: `~/Desktop/Final Cut Pro 11 BNNS Patched.app`.
 6. Launch the patched copy via right-click → Open (first time, to clear Gatekeeper).
 7. Open a duplicate library first. Try ML features, then check `/tmp/FCPBNNSCompat.log`
    for `succeeded` vs `ERROR rc=-1` + shadow-buffer counts.
@@ -84,4 +86,4 @@ newest `~/Library/Logs/DiagnosticReports/Final Cut Pro*.ips`, and the adapter lo
 
 Experimental port, launch-verified, ML runtime validation ongoing. Same caveats as upstream:
 unofficial, not affiliated with Apple, keep originals + backups. For deadlines prefer the
-official current Final Cut via App Store / Creator Studio trial.
+official current Final Cut via App Store / Creator Studio.

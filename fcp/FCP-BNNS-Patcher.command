@@ -1,8 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-# Final Cut Pro Trial 11.1 / macOS 27 BNNS compatibility patcher
+# Final Cut Pro 11.1 / macOS 27 BNNS compatibility patcher
 # Ported from Logic11-BNNS-Patcher logic for FCP's nested MAMachineLearning 11.1 (922).
+# Supports standard and trial installations of Final Cut Pro 11.1.
 #
 # Strategy (avoids fragile chained-import edits):
 #  - Neutralize direct _BNNSGraphGetSize call + serializer branch (same as Logic).
@@ -12,8 +13,16 @@ set -euo pipefail
 #    so the rebound GOT slot is never used; dlsym path goes via adapter.
 # Original app is NEVER modified; a Desktop copy is patched and ad-hoc signed.
 
-ORIG="/Applications/Final Cut Pro Trial.app"
-DEST="${FCP_PATCH_DEST:-$HOME/Desktop/Final Cut Pro Trial BNNS Patched.app}"
+if [ -d "${FCP_ORIG:-}" ]; then
+    ORIG="$FCP_ORIG"
+elif [ -d "/Applications/Final Cut Pro.app" ]; then
+    ORIG="/Applications/Final Cut Pro.app"
+elif [ -d "/Applications/Final Cut Pro Trial.app" ]; then
+    ORIG="/Applications/Final Cut Pro Trial.app"
+else
+    ORIG="/Applications/Final Cut Pro.app"
+fi
+DEST="${FCP_PATCH_DEST:-$HOME/Desktop/Final Cut Pro 11 BNNS Patched.app}"
 EXPECTED_VERSION="11.1"
 EXPECTED_HASH="c0e0729bf54f2313eb168126a3631d2c804176cc5c41493c17182bbd7d7457c7"
 FW_REL="Contents/Frameworks/EDEL.framework/Versions/A/Frameworks/MAMachineLearning.framework"
@@ -83,14 +92,14 @@ PY
 }
 
 say "============================================================"
-say " Final Cut Pro Trial 11.1 / macOS 27 - BNNS Patcher (port)"
+say " Final Cut Pro 11.1 / macOS 27 - BNNS Patcher (port)"
 say "============================================================"
 say "Original app: $ORIG"
 say "Patched copy: $DEST"
 say ""
 
 [ "$(uname -s)" = "Darwin" ] || die "macOS only."
-[ -d "$ORIG" ] || die "Final Cut Pro Trial.app not found in /Applications."
+[ -d "$ORIG" ] || die "Final Cut Pro application not found at: $ORIG"
 [ -f "$SHIM_SOURCE" ] || die "FCPBNNSCompat.c must be next to this script."
 [ ! -e "$DEST" ] || die "Destination exists: $DEST — move/delete it first."
 command -v python3 >/dev/null || die "python3 required."
@@ -103,10 +112,10 @@ say "macOS: $OS_VERSION"
 
 VERSION="$(defaults read "$ORIG/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || true)"
 say "FCP version: ${VERSION:-unknown}"
-[ "$VERSION" = "$EXPECTED_VERSION" ] || die "Expected FCP Trial $EXPECTED_VERSION, found '${VERSION:-unknown}'."
+[ "$VERSION" = "$EXPECTED_VERSION" ] || die "Expected Final Cut Pro $EXPECTED_VERSION, found '${VERSION:-unknown}'."
 
 ORIG_BIN="$ORIG/$BIN_REL"
-[ -f "$ORIG_BIN" ] || die "MAMachineLearning binary not found."
+[ -f "$ORIG_BIN" ] || die "MAMachineLearning binary not found at $ORIG_BIN."
 ACTUAL_HASH="$(shasum -a 256 "$ORIG_BIN" | awk '{print $1}')"
 say "MAMachineLearning SHA-256: $ACTUAL_HASH"
 [ "$ACTUAL_HASH" = "$EXPECTED_HASH" ] || die "Not the tested FCP 11.1 build. Expected: $EXPECTED_HASH"
@@ -143,7 +152,7 @@ check_runtime_bnns27_symbols || die "macOS 27 BNNS ABI not available."
 TMP_WORK="$(mktemp -d "${TMPDIR:-/tmp}/fcp-bnns.XXXXXX")"
 TMP_SHIM="$TMP_WORK/BNNSCompat.dylib"
 
-say "1/6  Copying Final Cut Pro Trial (5.9G, original untouched)..."
+say "1/6  Copying Final Cut Pro (original untouched)..."
 ditto "$ORIG" "$DEST"
 
 BIN="$DEST/$BIN_REL"
